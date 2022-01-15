@@ -1,4 +1,5 @@
 from scraper import Scraper
+from typing import List
 
 def main() -> None:
     headers = {'User-Agent':
@@ -11,7 +12,7 @@ def main() -> None:
               'min_year_built':1980}
 
     scraper = Scraper(headers=headers, filter=filter)
-    data = scraper.get_content()
+    data: List[tuple] = scraper.get_content()
     print(data)
 
 if __name__ == '__main__':
