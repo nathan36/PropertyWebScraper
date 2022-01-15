@@ -12,7 +12,7 @@ class Page:
 
 
 @dataclass
-class Scrper:
+class Scraper:
     headers: Dict
     filter: Dict
     prices: List = field(default_factory=list)
@@ -64,18 +64,19 @@ class Scrper:
             if location_container and len(location_container) != 0:
                 location = location_container[0].get("href").split("?")[0].split("/")[-1]
             else:
-                location = "None"
+                location = None
             return location
 
     def get_lot_size(self, container) -> int:
             size_container = container.find_all("ul", class_="l-pipedlist")
             if size_container and len(size_container) > 1:
-                size = int(size_container[1].find_all("li")[-1].text.split()[0])
+                label_lst = size_container[1].find_all("li")
+                size = int([ele.text.split()[0] for ele in label_lst if 'sf' in ele.text][0])
             else:
                 size = 0
             return size
 
-    def _get_content(self):
+    def _get_content(self) -> None:
         pages: List[Page] = self.parse_html()
         for page in pages:
             self.prices = list(map(lambda container: self.get_price(container), page.containers))
@@ -84,10 +85,11 @@ class Scrper:
 
     def get_content(self) -> pd.DataFrame:
         self._get_content()
-        return pd.DataFrame({'Price': self.prices,
-                             'Location': self.locations,
-                             'Size': self.lot_sizes,
-                             'ParsedDt': date.today().strftime('%Y-%m-%d %H:%M:%S')})
+        df = pd.DataFrame({'Price': self.prices,
+                           'Location': self.locations,
+                           'Size': self.lot_sizes,
+                           'ParsedDt': date.today().strftime('%Y-%m-%d %H:%M:%S')})
+        return df[df.Location.notnull()]
 
 
 
